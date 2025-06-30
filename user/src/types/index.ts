@@ -1,9 +1,11 @@
-// Common types for the user service
+import { Document } from "mongoose";
 
-export interface User {
+export interface User extends Document {
   id: string;
   email: string;
   name: string;
+  phoneNumber:string;
+  password:string;
   createdAt: Date;
   updatedAt: Date;
 }
