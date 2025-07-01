@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { isEmail, isMobilePhone } from "validator";
+import { isEmail } from "validator";
 import { User as IUser } from "../types";
 
 const userSchema = new Schema<IUser>(
@@ -16,13 +16,6 @@ const userSchema = new Schema<IUser>(
       lowercase: true,
       trim: true,
       validate: [isEmail, "Provide a valid email"],
-    },
-    phoneNumber: {
-      type: String,
-      trim: true,
-      unique: true,
-      sparse: true,
-      validate: [isMobilePhone, `Provide a valid phone number`],
     },
     password: {
       type: String,
