@@ -3,6 +3,8 @@ import { Request, Response, NextFunction } from 'express';
 import config from '../config';
 import { User as IUser } from '../types';
 import { User } from '../models/user.model';
+import catchAsync from '../utils/catchAsync';
+import AppError from '../utils/appError';
 
 const signToken = (id: string): string => {
   const secret = config.JWT_SECRET;
@@ -43,29 +45,50 @@ const createSendToken = (user: IUser, statusCode: number, res: Response): void =
   });
 };
 
-export const signup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
+export const signup =  catchAsync(async(req: Request, res: Response, next: NextFunction): Promise<void> => {
     const newUser = await User.create({
       name: req.body.name,
       email: req.body.email,
       password: req.body.password,
     });
     createSendToken(newUser, 201, res);
-  } catch (error) {
-    res.status(400).json({
-      status: 'error',
-      message: error instanceof Error ? error.message : 'Something went wrong during signup',
-    });
   }
-};
+);
 
-export const signin = async(req:Request,res:Response,next:NextFunction):Promise<void>=>{
-  try{
-
-  }catch(error){
-    res.status(400).json({
-      status:'error',
-      message:error instanceof Error ? error.message : 'Something went wrong during siginin'
-    })
+export const signin = catchAsync(async(req:Request,res:Response,next:NextFunction):Promise<void>=>{
+  const { email, password } = req.body;
+   if (!email || !password) {
+    return next(new AppError(`Please provide your email and password`, 400));
   }
+  const user = await User.findOne({email}).select('+password');
+  if (!user || !(await user.correctPassword(password, user.password))) {
+    return next(new AppError(`Incorrect email or password`, 401));
+  }
+  createSendToken(user, 200, res);
+})
+
+export const logout = (req: Request, res: Response): void => {
+  res.cookie('jwt', 'loggedout', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+    secure: config.NODE_ENV === 'production',
+  });
+  
+  res.status(200).json({
+    status: 'success',
+    message: 'Logged out successfully',
+  });
 }
+
+export const getProfile = catchAsync(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  if (!req.user) {
+    return next(new AppError('You are not logged in', 401));
+  }
+  const user = await User.findById(req.user.id).select('-password');
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user,
+    },
+  });
+});

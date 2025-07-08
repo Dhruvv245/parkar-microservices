@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { isEmail } from "validator";
+import bcrypt from "bcryptjs";
 import { User as IUser } from "../types";
 
 const userSchema = new Schema<IUser>(
@@ -28,5 +29,18 @@ const userSchema = new Schema<IUser>(
     timestamps: true, 
   }
 );
+
+userSchema.pre(`save`, async function (next) {
+  if (!this.isModified(`password`)) return next();
+  this.password = await bcrypt.hash(this.password, 12);
+  next();
+});
+
+userSchema.methods.correctPassword = async function (
+  candidatePassword:string,
+  userPassword:string
+):Promise<boolean> {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
 
 export const User = mongoose.model<IUser>("User", userSchema);
