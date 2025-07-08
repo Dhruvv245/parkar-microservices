@@ -38,7 +38,7 @@ export interface HealthCheckResponse {
 export interface EnvConfig {
   PORT: number;
   NODE_ENV: "development" | "production" | "test";
-  DATABASE_URL?: string;
+  DATABASE_URL: string;
   JWT_SECRET?: string;
   JWT_EXPIRES_IN?: string;
   JWT_COOKIE_EXPIRES_IN?: string;

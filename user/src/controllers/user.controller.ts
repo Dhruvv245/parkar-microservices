@@ -58,3 +58,14 @@ export const signup = async (req: Request, res: Response, next: NextFunction): P
     });
   }
 };
+
+export const signin = async(req:Request,res:Response,next:NextFunction):Promise<void>=>{
+  try{
+
+  }catch(error){
+    res.status(400).json({
+      status:'error',
+      message:error instanceof Error ? error.message : 'Something went wrong during siginin'
+    })
+  }
+}
